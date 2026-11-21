@@ -30,7 +30,6 @@ body {
   line-height: 1.55;
   background:
     radial-gradient(900px 500px at 95% -10%, rgba(255, 70, 85, 0.16), transparent 65%),
-    radial-gradient(700px 400px at 0% 20%, rgba(60, 120, 170, 0.12), transparent 70%),
     repeating-linear-gradient(125deg, transparent 0 42px, rgba(255, 255, 255, 0.012) 42px 43px),
     var(--bg);
 }
