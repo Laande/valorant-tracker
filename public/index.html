@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Yet another Valorant stats tracker" />
+    <title>Valorant Tracker</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark">V</div>
+          <div class="brand-text">
+            <strong>TRACKER</strong>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <span id="configBadge" class="badge">Checking API key…</span>
+        </div>
+      </header>
+
+      <section class="hero">
+        <form id="searchForm" class="search-card" novalidate>
+          <div class="card-title">SEARCH AN ACCOUNT</div>
+          <label class="field">
+            <span>Riot ID</span>
+            <div class="riot-id">
+              <input id="name" name="name" type="text" placeholder="YourName" autocomplete="off" required />
+              <span class="hash">#</span>
+              <input id="tag" name="tag" type="text" placeholder="EUW" maxlength="8" autocomplete="off" required />
+            </div>
+          </label>
+
+          <div class="field-grid">
+            <label class="field">
+              <span>Region</span>
+              <select id="region" name="region">
+                <option value="eu">EU</option>
+                <option value="na">NA</option>
+                <option value="ap">AP</option>
+                <option value="kr">KR</option>
+                <option value="br">BR</option>
+                <option value="latam">LATAM</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Platform</span>
+              <select id="platform" name="platform">
+                <option value="pc">PC</option>
+                <option value="console">Console</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Matches</span>
+              <select id="count" name="count">
+                <option value="1">1</option>
+                <option value="10">10</option>
+                <option value="30" selected>30</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <button id="submit" type="submit">
+              <span>Load stats</span>
+              <span class="arrow">→</span>
+            </button>
+            <button id="lastMatch" class="button-ghost tall" type="button">Last match</button>
+          </div>
+          <p id="formHint" class="form-hint"></p>
+        </form>
+      </section>
+
+      <div id="errorBox" class="message" hidden></div>
+      <div id="loading" class="loading" hidden>
+        <div class="spinner"></div>
+        <div>
+          <strong>Fetching matches…</strong>
+          <span>The HenrikDev API may take a few seconds.</span>
+        </div>
+      </div>
+
+      <section id="empty" class="empty">
+        <div class="empty-icon">◎</div>
+        <h2>Ready to analyze your matches?</h2>
+        <p>Enter your Riot ID and choose how many matches to load to see your stats.</p>
+      </section>
+
+      <main id="dashboard" hidden>
+        <section class="account-bar">
+          <div class="account-identity">
+            <div id="accountAvatar" class="account-avatar">?</div>
+            <div>
+              <div class="account-label">ANALYZED ACCOUNT</div>
+              <div id="accountName" class="account-name">—</div>
+              <div id="accountMeta" class="account-meta">—</div>
+            </div>
+          </div>
+          <div class="account-controls">
+            <button id="refresh" class="button-ghost" type="button">↻ Refresh</button>
+          </div>
+        </section>
+
+        <section id="kpis" class="kpis"></section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Match History</h2>
+            </div>
+            <button id="export" class="button-ghost" type="button">↓ Export CSV</button>
+          </div>
+          <div id="days" class="days"></div>
+        </section>
+      </main>
+
+      <footer>Data provided by <a href="https://api.henrikdev.xyz/dashboard/" target="_blank">HenrikDev</a> · Not affiliated with Riot Games</footer>
+    </div>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
