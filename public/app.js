@@ -213,7 +213,7 @@ function playerTable(match) {
   </table>`;
 }
 
-function renderDays(data) {
+function renderDays(data, expandMatches = false) {
   const grouped = new Map();
   for (const match of state.raw.matches) {
     const key = getDayKey(match.startedAt);
@@ -228,7 +228,7 @@ function renderDays(data) {
         .map((match) => {
           const me = match.players.find((player) => player.isMe) || null;
           const result = me?.won ? 'win' : 'lose';
-          return `<details class="match">
+          return `<details class="match" ${expandMatches ? 'open' : ''}>
             <summary>
               <div class="match-head">
                 <div class="match-map">
@@ -276,7 +276,7 @@ function render() {
 
   state.data = aggregate(state.raw.matches, { puuid: account.puuid });
   renderKpis(state.data.totals);
-  renderDays(state.data);
+  renderDays(state.data, state.raw.matches.length === 1);
 }
 
 function exportCsv() {
