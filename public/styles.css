@@ -262,6 +262,9 @@ button[type='submit'] .arrow { font-size: 25px; }
 .match-players tr.me .player-name { color: var(--accent); }
 .match-players tr:hover { filter: brightness(1.15); }
 .match-players .num { text-align: right; font-variant-numeric: tabular-nums; }
+.match-players .rank-cell { color: var(--muted); white-space: nowrap; }
+.rank-cell-inner { display: flex; align-items: center; gap: 8px; }
+.rank-icon { width: 24px; height: 24px; object-fit: contain; }
 .match-players .score-cell { color: var(--gold); font-weight: 700; }
 .match-players .dmg-cell { color: var(--text); font-weight: 700; }
 

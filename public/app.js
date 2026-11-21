@@ -158,8 +158,9 @@ function sortHeader(key, label, title = '') {
 
 function rowsBody(match) {
   return sortedPlayers(match)
-    .map(
-      (player) => `<tr class="${teamClass(match, player)}${player.isMe ? ' me' : ''}" data-puuid="${escapeHtml(player.puuid)}">
+    .map((player) => {
+      const rank = player.tier || '';
+      return `<tr class="${teamClass(match, player)}${player.isMe ? ' me' : ''}" data-puuid="${escapeHtml(player.puuid)}">
         <td>
           <div class="player-cell">
             <span class="player-avatar">${initial(player.name)}</span>
@@ -171,14 +172,20 @@ function rowsBody(match) {
             </div>
           </div>
         </td>
+        <td class="rank-cell">
+          <div class="rank-cell-inner">
+            ${rank ? `<img class="rank-icon" src="/ranks/${escapeHtml(slugify(rank))}.png" alt="" loading="lazy" onerror="this.style.display='none'" />` : ''}
+            <span>${escapeHtml(rank || '—')}</span>
+          </div>
+        </td>
         <td class="num score-cell">${fmt(acs(player))}</td>
         <td class="num">${fmt(player.kills)}</td>
         <td class="num">${fmt(player.deaths)}</td>
         <td class="num">${fmt(player.assists)}</td>
         <td class="num">${hsRate(player)}%</td>
         <td class="num dmg-cell">${fmt(player.damage)}</td>
-      </tr>`,
-    )
+      </tr>`;
+    })
     .join('');
 }
 
@@ -194,6 +201,7 @@ function playerTable(match) {
   return `<table class="match-players" data-match-id="${escapeHtml(match.id)}">
     <thead><tr>
       <th>Player</th>
+      <th title="Rank at the time of the match">Rank</th>
       ${sortHeader('acs', 'Score', 'Average combat score per round (ACS)')}
       ${sortHeader('kills', 'K')}
       ${sortHeader('deaths', 'D')}

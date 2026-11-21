@@ -107,6 +107,7 @@ test('normalizeMatch extracts damage dealt', () => {
         tag: 'EUW',
         team_id: 'a',
         agent: { name: 'Reyna' },
+        tier: { name: 'Gold 2' },
         stats: { kills: 20, deaths: 10, assists: 4, score: 500, headshots: 8, damage: { dealt: 3200, received: 2100 } },
       },
     ],
@@ -115,6 +116,7 @@ test('normalizeMatch extracts damage dealt', () => {
   const normalized = normalizeMatch(raw, 'me');
   assert.equal(normalized.map, 'Bind');
   assert.equal(normalized.players[0].damage, 3200);
+  assert.equal(normalized.players[0].tier, 'Gold 2');
   assert.equal(normalized.players[0].isMe, true);
   assert.equal(normalized.players[0].roundsPlayed, 18);
   assert.equal(normalized.teams[0].roundsWon, 13);
