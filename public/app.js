@@ -228,21 +228,24 @@ function renderDays(data) {
         .map((match) => {
           const me = match.players.find((player) => player.isMe) || null;
           const result = me?.won ? 'win' : 'lose';
-          return `<div class="match">
-            <div class="match-head">
-              <div class="match-map">
-                <img class="map-icon" src="/maps/${escapeHtml(slugify(match.map))}.png" alt="" loading="lazy" onerror="this.remove()" />
-                <span>${escapeHtml(match.map)}</span>
+          return `<details class="match">
+            <summary>
+              <div class="match-head">
+                <div class="match-map">
+                  <span class="match-caret">▶</span>
+                  <img class="map-icon" src="/maps/${escapeHtml(slugify(match.map))}.png" alt="" loading="lazy" onerror="this.remove()" />
+                  <span>${escapeHtml(match.map)}</span>
+                </div>
+                <span class="match-score">${scoreHtml(match)}</span>
+                <div class="match-meta">
+                  <span class="match-mode">${escapeHtml(match.mode)}</span>
+                  <span class="match-mode">Duration ${formatDuration(match.durationMs)}</span>
+                  <span class="match-result ${result}">${me?.won ? 'WIN' : 'LOSS'}</span>
+                </div>
               </div>
-              <span class="match-score">${scoreHtml(match)}</span>
-              <div class="match-meta">
-                <span class="match-mode">${escapeHtml(match.mode)}</span>
-                <span class="match-mode">Duration ${formatDuration(match.durationMs)}</span>
-                <span class="match-result ${result}">${me?.won ? 'WIN' : 'LOSS'}</span>
-              </div>
-            </div>
+            </summary>
             <div class="table-wrap">${playerTable(match)}</div>
-          </div>`;
+          </details>`;
         })
         .join('');
 
