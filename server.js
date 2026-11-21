@@ -9,6 +9,7 @@ loadEnv();
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.join(ROOT, 'public');
 const PORT = Number(process.env.PORT) || 3000;
+const HOST = '0.0.0.0';
 const CACHE_TTL = 5 * 60 * 1000;
 const cache = new Map();
 
@@ -118,7 +119,8 @@ const server = http.createServer(async (request, response) => {
   await serveStatic(response, url.pathname);
 });
 
-server.listen(PORT, () => {
-  console.log(`Valorant Tracker: http://localhost:${PORT}`);
+server.listen(PORT, HOST, () => {
+  console.log(`Valorant Tracker listening on ${HOST}:${PORT}`);
+  console.log(`Local : http://localhost:${PORT}`);
   if (!getApiKey()) console.log('API key missing: copy .env.example to .env and add your HenrikDev key.');
 });
