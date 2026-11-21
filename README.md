@@ -1,6 +1,6 @@
 # Valorant Tracker
 
-A small local dashboard for VALORANT match stats from [HenrikDev](https://api.henrikdev.xyz/dashboard/)
+A small local dashboard for Valorant match stats from [HenrikDev](https://api.henrikdev.xyz/dashboard/)
 
 ## Setup
 
