@@ -2,7 +2,7 @@ import { aggregate, getAcs, getDayKey, getHeadshotRate } from './data.js';
 
 const $ = (id) => document.getElementById(id);
 const numberFormat = new Intl.NumberFormat('en-GB');
-const state = { raw: null, data: null, sort: { key: 'acs', dir: 'desc' } };
+const state = { raw: null, data: null, sort: { key: 'score', dir: 'desc' } };
 
 const escapeHtml = (value) =>
   String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
@@ -13,9 +13,11 @@ const initial = (name) => escapeHtml(String(name || '?').trim().charAt(0).toUppe
 const hsRate = (player) => getHeadshotRate(player.headshots, player.bodyshots, player.legshots);
 
 const acs = (player) => getAcs(player.score, player.roundsPlayed);
+const scoreValue = (player) => (Number.isFinite(player.performanceScore) ? Math.round(player.performanceScore) : acs(player));
 
 const sortValue = (player, key = state.sort.key) => {
   if (key === 'hs') return hsRate(player);
+  if (key === 'score') return scoreValue(player);
   if (key === 'acs') return acs(player);
   return player[key] || 0;
 };
@@ -130,13 +132,12 @@ function renderKpis(totals) {
     .join('');
 }
 
-function sortedTeams(match) {
-  return [...(match.teams || [])].sort((a, b) => String(a.teamId).localeCompare(String(b.teamId)));
+function myTeamId(match) {
+  return match.players.find((player) => player.isMe)?.teamId;
 }
 
 function teamClass(match, player) {
-  const index = sortedTeams(match).findIndex((team) => team.teamId === player.teamId);
-  return index === 1 ? 'team-red' : 'team-blue';
+  return player.teamId === myTeamId(match) ? 'team-blue' : 'team-red';
 }
 
 function partyInfo(match) {
@@ -159,9 +160,11 @@ function partyBadge(party) {
 }
 
 function scoreHtml(match) {
-  const teams = sortedTeams(match);
-  if (teams.length < 2) return '—';
-  return `<span class="team-blue-text">${teams[0].roundsWon}</span><span class="score-sep">-</span><span class="team-red-text">${teams[1].roundsWon}</span>`;
+  const mine = myTeamId(match);
+  const myTeam = (match.teams || []).find((team) => team.teamId === mine);
+  const enemy = (match.teams || []).find((team) => team.teamId !== mine);
+  if (!myTeam || !enemy) return '—';
+  return `<span class="team-blue-text">${myTeam.roundsWon}</span><span class="score-sep">-</span><span class="team-red-text">${enemy.roundsWon}</span>`;
 }
 
 function sortedPlayers(match) {
@@ -199,7 +202,7 @@ function rowsBody(match) {
             <span>${escapeHtml(rank || '—')}</span>
           </div>
         </td>
-        <td class="num score-cell">${fmt(acs(player))}</td>
+        <td class="num score-cell">${fmt(scoreValue(player))}</td>
         <td class="num">${fmt(player.kills)}</td>
         <td class="num">${fmt(player.deaths)}</td>
         <td class="num">${fmt(player.assists)}</td>
@@ -223,7 +226,7 @@ function playerTable(match) {
     <thead><tr>
       <th>Player</th>
       <th title="Rank at the time of the match">Rank</th>
-      ${sortHeader('acs', 'Score', 'Average combat score per round (ACS)')}
+      ${sortHeader('score', 'Score', 'Performance score shown in game')}
       ${sortHeader('kills', 'K')}
       ${sortHeader('deaths', 'D')}
       ${sortHeader('assists', 'A')}
@@ -303,7 +306,7 @@ function render() {
 function exportCsv() {
   if (!state.data?.players.length) return;
   const rows = [
-    ['Riot ID', 'Agent', 'Matches', 'Wins', 'Losses', 'Kills', 'Deaths', 'Assists', 'Score (ACS)', 'KD', 'Total damage', 'Damage per match', 'Headshots'],
+    ['Riot ID', 'Agent', 'Matches', 'Wins', 'Losses', 'Kills', 'Deaths', 'Assists', 'Score', 'KD', 'Total damage', 'Damage per match', 'Headshots'],
     ...state.data.players.map((player) => [
       `${player.name}#${player.tag}`,
       player.agent,
@@ -313,7 +316,7 @@ function exportCsv() {
       player.kills,
       player.deaths,
       player.assists,
-      player.acs,
+      player.score,
       player.kd,
       player.damage,
       player.avgDamage,

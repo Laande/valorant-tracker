@@ -101,6 +101,8 @@ export function aggregate(matches, { puuid, timeZone = localTimeZone, locale = '
           assists: 0,
           score: 0,
           roundsPlayed: 0,
+          performanceTotal: 0,
+          performanceGames: 0,
           damage: 0,
           headshots: 0,
         });
@@ -113,6 +115,10 @@ export function aggregate(matches, { puuid, timeZone = localTimeZone, locale = '
       entry.assists += player.assists || 0;
       entry.score += player.score || 0;
       entry.roundsPlayed += player.roundsPlayed || 0;
+      if (Number.isFinite(player.performanceScore)) {
+        entry.performanceTotal += player.performanceScore;
+        entry.performanceGames += 1;
+      }
       entry.damage += player.damage || 0;
       entry.headshots += player.headshots || 0;
     }
@@ -121,12 +127,16 @@ export function aggregate(matches, { puuid, timeZone = localTimeZone, locale = '
   const dayList = [...days.values()].sort((a, b) => b.key.localeCompare(a.key));
 
   const playerList = [...players.values()]
-    .map((player) => ({
-      ...player,
-      avgDamage: Math.round(safeDivide(player.damage, player.games)),
-      acs: getAcs(player.score, player.roundsPlayed),
-      kd: Number(safeDivide(player.kills, player.deaths).toFixed(2)),
-    }))
+    .map((player) => {
+      const acs = getAcs(player.score, player.roundsPlayed);
+      return {
+        ...player,
+        avgDamage: Math.round(safeDivide(player.damage, player.games)),
+        acs,
+        score: player.performanceGames ? Math.round(safeDivide(player.performanceTotal, player.performanceGames)) : acs,
+        kd: Number(safeDivide(player.kills, player.deaths).toFixed(2)),
+      };
+    })
     .sort((a, b) => b.damage - a.damage);
 
   const totals = {

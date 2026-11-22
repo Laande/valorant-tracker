@@ -106,6 +106,8 @@ test('normalizeMatch extracts damage dealt', () => {
         name: 'Me',
         tag: 'EUW',
         team_id: 'a',
+        party_id: 'party-1',
+        performance: { score: 309 },
         agent: { name: 'Reyna' },
         tier: { name: 'Gold 2' },
         stats: { kills: 20, deaths: 10, assists: 4, score: 500, headshots: 8, damage: { dealt: 3200, received: 2100 } },
@@ -118,8 +120,21 @@ test('normalizeMatch extracts damage dealt', () => {
   assert.equal(normalized.players[0].damage, 3200);
   assert.equal(normalized.players[0].tier, 'Gold 2');
   assert.equal(normalized.players[0].isMe, true);
+  assert.equal(normalized.players[0].partyId, 'party-1');
+  assert.equal(normalized.players[0].performanceScore, 309);
   assert.equal(normalized.players[0].roundsPlayed, 18);
   assert.equal(normalized.teams[0].roundsWon, 13);
+});
+
+test('aggregate uses the in-game performance score when available', () => {
+  const matches = [
+    match('m1', '2026-11-20T20:00:00Z', [player('me', { performanceScore: 309 }), player('p2', { performanceScore: 240, won: false })]),
+    match('m2', '2026-11-21T20:00:00Z', [player('me', { performanceScore: 251 }), player('p2', { performanceScore: 180, won: false })]),
+  ];
+
+  const result = aggregate(matches, { puuid: 'me', timeZone: 'UTC' });
+  assert.equal(result.players.find((entry) => entry.puuid === 'me').score, 280);
+  assert.equal(result.players.find((entry) => entry.puuid === 'p2').score, 210);
 });
 
 test('normalizeMatch keeps the party id', () => {
