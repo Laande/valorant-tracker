@@ -279,6 +279,13 @@ button[type='submit'] .arrow { font-size: 25px; }
 .player-name { font-weight: 600; }
 .player-sub { color: var(--muted); font-size: 12px; }
 .tag-you { margin-left: 8px; padding: 2px 6px; color: var(--accent); background: rgba(255, 70, 85, .12); font-size: 9px; font-weight: 700; letter-spacing: 1px; }
+.party-badge { margin-left: 8px; padding: 2px 6px; border: 1px solid currentColor; font-size: 9px; font-weight: 700; letter-spacing: 1px; }
+.party-color-0 { color: var(--blue); }
+.party-color-1 { color: var(--gold); }
+.party-color-2 { color: var(--green); }
+.party-color-3 { color: #c99cff; }
+.party-color-4 { color: #ff9ba3; }
+.party-color-5 { color: #7fe0d8; }
 
 footer { padding: 30px 0 0; color: #5f7384; font-size: 12px; text-align: center; }
 footer a { color: inherit; }

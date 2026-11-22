@@ -139,6 +139,25 @@ function teamClass(match, player) {
   return index === 1 ? 'team-red' : 'team-blue';
 }
 
+function partyInfo(match) {
+  const sizes = new Map();
+  for (const player of match.players || []) {
+    if (!player.partyId) continue;
+    sizes.set(player.partyId, (sizes.get(player.partyId) || 0) + 1);
+  }
+  const parties = new Map();
+  for (const [id, size] of sizes) {
+    if (size > 1) parties.set(id, { size, color: parties.size % 6 });
+  }
+  return parties;
+}
+
+function partyBadge(party) {
+  if (!party) return '';
+  const label = party.size === 2 ? 'DUO' : party.size === 3 ? 'TRIO' : `x${party.size}`;
+  return `<span class="party-badge party-color-${party.color}">${label}</span>`;
+}
+
 function scoreHtml(match) {
   const teams = sortedTeams(match);
   if (teams.length < 2) return '—';
@@ -157,9 +176,11 @@ function sortHeader(key, label, title = '') {
 }
 
 function rowsBody(match) {
+  const parties = partyInfo(match);
   return sortedPlayers(match)
     .map((player) => {
       const rank = player.tier || '';
+      const party = parties.get(player.partyId);
       return `<tr class="${teamClass(match, player)}${player.isMe ? ' me' : ''}" data-puuid="${escapeHtml(player.puuid)}">
         <td>
           <div class="player-cell">
@@ -167,7 +188,7 @@ function rowsBody(match) {
             <img class="agent-icon" src="/agents/${escapeHtml(slugify(player.agent))}.png" alt="" loading="lazy"
               onerror="this.style.display='none';this.previousElementSibling.style.display='grid'" />
             <div>
-              <div class="player-name">${escapeHtml(player.name)}#${escapeHtml(player.tag)}${player.isMe ? '<span class="tag-you">YOU</span>' : ''}</div>
+              <div class="player-name">${escapeHtml(player.name)}#${escapeHtml(player.tag)}${player.isMe ? '<span class="tag-you">YOU</span>' : ''}${partyBadge(party)}</div>
               <div class="player-sub">${escapeHtml(player.agent)}</div>
             </div>
           </div>

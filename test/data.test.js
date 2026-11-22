@@ -122,6 +122,23 @@ test('normalizeMatch extracts damage dealt', () => {
   assert.equal(normalized.teams[0].roundsWon, 13);
 });
 
+test('normalizeMatch keeps the party id', () => {
+  const raw = {
+    metadata: { match_id: 'abc', started_at: '2026-11-21T20:00:00Z', map: { name: 'Bind' } },
+    teams: [{ team_id: 'a', won: true, rounds: { won: 13, lost: 5 } }],
+    players: [
+      { puuid: 'me', name: 'Me', tag: 'EUW', team_id: 'a', party_id: 'party-1', stats: {} },
+      { puuid: 'mate', name: 'Mate', tag: 'EUW', team_id: 'a', party_id: 'party-1', stats: {} },
+      { puuid: 'solo', name: 'Solo', tag: 'EUW', team_id: 'a', party_id: 'party-2', stats: {} },
+    ],
+  };
+
+  const normalized = normalizeMatch(raw, 'me');
+  assert.equal(normalized.players[0].partyId, 'party-1');
+  assert.equal(normalized.players[1].partyId, 'party-1');
+  assert.equal(normalized.players[2].partyId, 'party-2');
+});
+
 test('normalizeMatch counts the rounds each player actually played', () => {
   const raw = {
     metadata: { match_id: 'abc', started_at: '2026-11-21T20:00:00Z', map: { name: 'Split' }, queue: { id: 'competitive' } },
