@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ApiError, fetchMatches, getApiKey, loadEnv, validateQuery } from './lib/henrik.js';
+import { ApiError, PAGE_SIZE, fetchMatches, getApiKey, loadEnv, validateQuery } from './lib/henrik.js';
 
 loadEnv();
 
@@ -12,7 +12,12 @@ const PUBLIC_DIR = path.join(ROOT, 'public');
 const PORT = Number(process.env.PORT) || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
 const CACHE_TTL = 5 * 60 * 1000;
+const RATE_CAPACITY = Number(process.env.RATE_LIMIT_PER_MINUTE) || 30;
+const RATE_REFILL = RATE_CAPACITY / 60000;
+const MAX_IN_FLIGHT = 2;
 const cache = new Map();
+const rateBuckets = new Map();
+const inFlight = new Map();
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -22,13 +27,41 @@ const MIME_TYPES = {
   '.png': 'image/png',
 };
 
-function sendJson(response, status, payload) {
+function sendJson(response, status, payload, headers = {}) {
   response.writeHead(status, {
     'Content-Type': 'application/json; charset=utf-8',
     'Cache-Control': 'no-store',
     'X-Content-Type-Options': 'nosniff',
+    ...headers,
   });
   response.end(JSON.stringify(payload));
+}
+
+function clientIp(request) {
+  return request.socket.remoteAddress || 'unknown';
+}
+
+function consumeTokens(ip, cost) {
+  const now = Date.now();
+  let bucket = rateBuckets.get(ip);
+  if (!bucket) {
+    bucket = { tokens: RATE_CAPACITY, updated: now };
+    rateBuckets.set(ip, bucket);
+  }
+  bucket.tokens = Math.min(RATE_CAPACITY, bucket.tokens + (now - bucket.updated) * RATE_REFILL);
+  bucket.updated = now;
+
+  if (rateBuckets.size > 500) {
+    for (const [key, entry] of rateBuckets) {
+      if (now - entry.updated > 10 * 60 * 1000) rateBuckets.delete(key);
+    }
+  }
+
+  if (bucket.tokens < cost) {
+    return { retry: Math.ceil((cost - bucket.tokens) / RATE_REFILL / 1000), remaining: 0 };
+  }
+  bucket.tokens -= cost;
+  return { retry: 0, remaining: Math.floor(bucket.tokens) };
 }
 
 function cacheKey(query) {
@@ -95,24 +128,49 @@ const server = http.createServer(async (request, response) => {
 
     const query = validation.value;
     const key = cacheKey(query);
-    if (url.searchParams.get('refresh') === '1') cache.delete(key);
-    const cached = getCached(key);
-    if (cached) {
-      sendJson(response, 200, { ...cached, cached: true });
+    const force = url.searchParams.get('refresh') === '1';
+    if (!force) {
+      const cached = getCached(key);
+      if (cached) {
+        sendJson(response, 200, { ...cached, cached: true });
+        return;
+      }
+    }
+
+    const ip = clientIp(request);
+    if ((inFlight.get(ip) || 0) >= MAX_IN_FLIGHT) {
+      sendJson(response, 429, { error: 'Too many simultaneous requests.' }, { 'Retry-After': '1' });
+      return;
+    }
+    const cost = Math.max(1, Math.ceil(query.count / PAGE_SIZE));
+    const limit = consumeTokens(ip, cost);
+    if (limit.retry) {
+      sendJson(
+        response,
+        429,
+        { error: `Too many requests. Try again in ${limit.retry}s.` },
+        { 'Retry-After': String(limit.retry), 'X-RateLimit-Remaining': '0' },
+      );
       return;
     }
 
+    inFlight.set(ip, (inFlight.get(ip) || 0) + 1);
+    if (force) cache.delete(key);
     try {
       const payload = await fetchMatches(query);
       setCached(key, payload);
-      sendJson(response, 200, { ...payload, cached: false });
+      sendJson(response, 200, { ...payload, cached: false }, { 'X-RateLimit-Remaining': String(limit.remaining) });
     } catch (error) {
       if (error instanceof ApiError) {
-        sendJson(response, error.status, { error: error.message });
+        sendJson(response, error.status, { error: error.message }, { 'X-RateLimit-Remaining': String(limit.remaining) });
         return;
       }
       console.error('Unexpected error:', error);
       sendJson(response, 500, { error: 'Internal server error.' });
+    } finally {
+      const active = (inFlight.get(ip) || 1) - 1;
+      if (active > 0) inFlight.set(ip, active);
+      else inFlight.delete(ip);
     }
     return;
   }
