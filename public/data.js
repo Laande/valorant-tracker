@@ -94,6 +94,7 @@ export function aggregate(matches, { puuid, timeZone = localTimeZone, locale = '
           name: player.name,
           tag: player.tag,
           agent: player.agent,
+          level: player.level || "—",
           games: 0,
           wins: 0,
           kills: 0,
@@ -108,6 +109,7 @@ export function aggregate(matches, { puuid, timeZone = localTimeZone, locale = '
         });
       }
       const entry = players.get(player.puuid);
+      if (!entry.level && player.level) entry.level = player.level;
       entry.games += 1;
       if (player.won) entry.wins += 1;
       entry.kills += player.kills || 0;

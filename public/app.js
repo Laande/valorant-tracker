@@ -192,7 +192,7 @@ function rowsBody(match) {
               onerror="this.style.display='none';this.previousElementSibling.style.display='grid'" />
             <div>
               <div class="player-name">${escapeHtml(player.name)}#${escapeHtml(player.tag)}${player.isMe ? '<span class="tag-you">YOU</span>' : ''}${partyBadge(party)}</div>
-              <div class="player-sub">${escapeHtml(player.agent)}</div>
+              <div class="player-sub">${escapeHtml(player.agent)} · Lvl ${fmt(player.level)}</div>
             </div>
           </div>
         </td>
@@ -306,10 +306,11 @@ function render() {
 function exportCsv() {
   if (!state.data?.players.length) return;
   const rows = [
-    ['Riot ID', 'Agent', 'Matches', 'Wins', 'Losses', 'Kills', 'Deaths', 'Assists', 'Score', 'KD', 'Total damage', 'Damage per match', 'Headshots'],
+    ['Riot ID', 'Agent', 'Level', 'Matches', 'Wins', 'Losses', 'Kills', 'Deaths', 'Assists', 'Score', 'KD', 'Total damage', 'Damage per match', 'Headshots'],
     ...state.data.players.map((player) => [
       `${player.name}#${player.tag}`,
       player.agent,
+      player.level,
       player.games,
       player.wins,
       player.games - player.wins,

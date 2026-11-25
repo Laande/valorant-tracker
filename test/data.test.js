@@ -107,6 +107,7 @@ test('normalizeMatch extracts damage dealt', () => {
         tag: 'EUW',
         team_id: 'a',
         party_id: 'party-1',
+        account_level: 123,
         performance: { score: 309 },
         agent: { name: 'Reyna' },
         tier: { name: 'Gold 2' },
@@ -121,6 +122,7 @@ test('normalizeMatch extracts damage dealt', () => {
   assert.equal(normalized.players[0].tier, 'Gold 2');
   assert.equal(normalized.players[0].isMe, true);
   assert.equal(normalized.players[0].partyId, 'party-1');
+  assert.equal(normalized.players[0].level, 123);
   assert.equal(normalized.players[0].performanceScore, 309);
   assert.equal(normalized.players[0].roundsPlayed, 18);
   assert.equal(normalized.teams[0].roundsWon, 13);
